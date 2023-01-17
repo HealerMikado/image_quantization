@@ -1,0 +1,4 @@
+opencv-python-headless==4.6.0.66
+scikit-learn
+numpy
+boto3
