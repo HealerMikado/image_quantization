@@ -1,7 +1,7 @@
 # Color quantization
 
 
-This projet is just a small projet to use AWS Serverless Application Model (SAM) and doing some image treatment in python.
+This project is just a small project to use AWS Serverless Application Model (SAM) and doing some image treatment in python.
 
 The application architecture is :
 - A s3 bucket to store incoming image
@@ -10,11 +10,25 @@ The application architecture is :
 
 ![Architecture diagram](assets/architecture.png)
 
-## Image treatment
+## Image simplification
 
-This app reduce the number of color of an image. It use the K-means clustering method to extract the most used K colors and apply them to the original image (see https://scikit-learn.org/stable/auto_examples/cluster/plot_color_quantization.html). The lambda will try different numbers of colors (from 8 to 32), and keeps the K-means clustering with the best silhouette (see https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_silhouette_analysis.html). It's not perfect a perfect method, because for a lot of image it keeps only the K-means with the minimum number of cluster. I need to do some more research to understand why.
+This app reduce the number of color of an image. It use the K-means clustering method to extract the most used K colors and apply them to the original image (see https://scikit-learn.org/stable/auto_examples/cluster/plot_color_quantization.html). The lambda will try different numbers of colors (from 8 to 32), and keeps the K-means clustering with the best silhouette (see https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_silhouette_analysis.html). It's not a perfect method, because for a lot of image it selects only the K-means with the minimum number of cluster. I need to do some more research to understand why.
 
-To speed up the process time, the lambda don't use the full image, but only a sample of 1000 points. With full images, it can take more than one hour to compute all the K-means results and their silhouette. But it's not a big deal because I compute a simplified image at the and. A little loss in quality is acceptable for speed up computation.
+To speed up the process time, the lambda don't use the full image, but only a sample of 1000 points. With full images, it can take more than one hour to compute all the K-means results and their silhouette. But it's not a big deal because I compute a simplified image at the and. A little loss in quality is acceptable to speed up computation.
+
+## K-means algorithm
+
+K-means is a unsupervised clustering method. The algorithm will find all by itself the best cluster. The algorithm is pretty simple :
+
+1. Associate each point to one of the k clusters randomly.
+
+2. Compute the center of gravity (*centroid*) of each cluster.
+3. Associate each point to the closest centroid using the Euclidian distance.
+4. Repeat steps 2-3 until the centroids converge.
+
+To apply it to image, we need to convert the image to the right data format. Each pixel can be represented as a triplet of the red, green and blue values. So the final dataset will have 3 dimensions, one for the red color, one for the green and one for the blue.
+
+Once again to speed up the process, not all pixels will be used. Only 1000 will be sampled. Because K-means algorithm has a time complexity of $\mathcal{O}(n^2)$, increasing the sample size by 5 or 10 can drastically increase the computation time.
 
 ## What I learned
 
